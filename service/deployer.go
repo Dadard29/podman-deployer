@@ -98,6 +98,7 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 	}
 
 	// pull the image from name
+	log.Println(fmt.Sprintf("pulling image %s", params.ImageName))
 	containerImage, err := i.PullImage(params.ImageName)
 	if err != nil {
 		log.Println(err)
