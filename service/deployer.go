@@ -1,0 +1,126 @@
+package service
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/Dadard29/podman-deployer/models"
+	"github.com/Dadard29/podman-deployer/podman"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
+
+type deployParameter struct {
+	ImageName string
+	ContainerName string
+}
+
+func sendResponse(w http.ResponseWriter, message string, status int) {
+	w.WriteHeader(status)
+	if _, err := w.Write([]byte(message)); err != nil {
+		log.Println(err)
+	}
+
+}
+
+func deployRoute(w http.ResponseWriter, r *http.Request) {
+	// check auth
+	token := r.Header.Get("Authorization")
+	if token != globalService.config.getToken() {
+		sendResponse(w, "invalid token", http.StatusUnauthorized)
+		return
+	}
+
+
+	// deserialize body
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+		sendResponse(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	var params deployParameter
+	if err := json.Unmarshal(data, &params); err != nil {
+		log.Println(err)
+		sendResponse(w, "invalid json", http.StatusBadRequest)
+		return
+	}
+
+	deploy(params, w)
+}
+
+func deploy(params deployParameter, w http.ResponseWriter) {
+
+	var i podman.PodmanExecInterface
+	i = podman.PodmanExec{}
+
+	// stop running  container with name
+	containers := i.ListRunningContainers()
+	for _, c := range containers {
+		if c.Names == params.ContainerName {
+			// check the image is correct
+			if c.Image != params.ImageName {
+				sendResponse(
+					w, fmt.Sprintf("a running container with this name is using a different image than %s",
+						params.ImageName), http.StatusInternalServerError)
+				return
+			}
+
+			if _, err := i.StopContainer(c); err != nil {
+				log.Println(err)
+				sendResponse(w, "error stopping existing container", http.StatusInternalServerError)
+				return
+			}
+			log.Println(fmt.Sprintf("container %s (%s) stopped", c.Names, c.Image))
+			break
+		}
+	}
+
+	// delete stopped container with name
+	allContainers := i.ListAllContainers()
+	for _, c := range allContainers {
+		if c.Names == params.ContainerName {
+			// check the container is stopped
+			if c.State != 6 {
+				sendResponse(w, "container has not been correctly stopped", http.StatusInternalServerError)
+				return
+			}
+
+			// check the image is correct
+			if c.Image != params.ImageName {
+				sendResponse(
+					w, fmt.Sprintf("a stopped container with this name is using a different image than %s",
+						params.ImageName), http.StatusInternalServerError)
+				return
+			}
+
+			if _, err := i.DeleteContainer(c); err != nil {
+				log.Println(err)
+				sendResponse(w, "error removing existing container", http.StatusInternalServerError)
+				return
+			}
+			log.Println(fmt.Sprintf("container %s (%s) deleted", c.Names, c.Image))
+			break
+		}
+	}
+
+	// get the image from name
+	containerImage, err := i.GetImage(params.ImageName)
+	if err != nil {
+		log.Println(err)
+		sendResponse(w, fmt.Sprintf("image with name %s not found", params.ImageName), http.StatusInternalServerError)
+		return
+	}
+
+	var newContainer models.Container
+	if newContainer, err = i.RunContainer(params.ContainerName, containerImage); err != nil {
+		log.Println(err)
+		sendResponse(w, "error starting container", http.StatusInternalServerError)
+		return
+	}
+
+	log.Println(fmt.Sprintf("container %s (%s) started", newContainer.Names, newContainer.Image))
+	sendResponse(w, "container started", http.StatusOK)
+
+}
