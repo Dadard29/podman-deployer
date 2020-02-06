@@ -20,6 +20,7 @@ type PodmanExecInterface interface {
 	DeleteContainer(container Container) (Container, error)
 	ListImages() []Image
 	GetImage(imageName string) (Image, error)
+	PullImage(imageName string) (Image, error)
 }
 
 type PodmanExec struct {
@@ -55,11 +56,13 @@ func (p PodmanExec) ListRunningContainers() []Container {
 	var containers []Container
 	stdout, err := p.execCommand([]string{"ps"}, true)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return containers
 	}
 
 	if err := json.Unmarshal(stdout, &containers); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return containers
 	}
 
 	return containers
@@ -69,11 +72,13 @@ func (p PodmanExec) ListAllContainers() []Container {
 	var containers []Container
 	stdout, err := p.execCommand([]string{"ps", "-a"}, true)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return containers
 	}
 
 	if err := json.Unmarshal(stdout, &containers); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return containers
 	}
 
 	return containers
@@ -132,11 +137,11 @@ func (p PodmanExec) ListImages() []Image {
 	var images []Image
 	stdout, err := p.execCommand([]string{"images"}, true)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	if err := json.Unmarshal(stdout, &images); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	return images
@@ -153,4 +158,19 @@ func (p PodmanExec) GetImage(imageName string) (Image, error) {
 	}
 
 	return Image{}, errors.New(fmt.Sprintf("image with name %s not found", imageName))
+}
+
+func (p PodmanExec) PullImage(imageName string) (Image, error) {
+	var i Image
+	_, err := p.execCommand([]string{"pull", imageName}, false)
+	if err != nil {
+		return i, err
+	}
+
+	i, err = p.GetImage(imageName)
+	if err != nil {
+		return i, err
+	}
+
+	return i, nil
 }

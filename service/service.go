@@ -15,6 +15,13 @@ type Service struct {
 	config config
 }
 
+func sendResponse(w http.ResponseWriter, message string, status int) {
+	w.WriteHeader(status)
+	if _, err := w.Write([]byte(message)); err != nil {
+		log.Println(err)
+	}
+}
+
 func NewService() Service {
 	config := retrieveConfig()
 

@@ -15,14 +15,6 @@ type deployParameter struct {
 	ContainerName string
 }
 
-func sendResponse(w http.ResponseWriter, message string, status int) {
-	w.WriteHeader(status)
-	if _, err := w.Write([]byte(message)); err != nil {
-		log.Println(err)
-	}
-
-}
-
 func deployRoute(w http.ResponseWriter, r *http.Request) {
 	// check auth
 	token := r.Header.Get("Authorization")
@@ -105,11 +97,11 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 		}
 	}
 
-	// get the image from name
-	containerImage, err := i.GetImage(params.ImageName)
+	// pull the image from name
+	containerImage, err := i.PullImage(params.ImageName)
 	if err != nil {
 		log.Println(err)
-		sendResponse(w, fmt.Sprintf("image with name %s not found", params.ImageName), http.StatusInternalServerError)
+		sendResponse(w, fmt.Sprintf("failed to pull image with name %s: %s", params.ImageName, err.Error()), http.StatusInternalServerError)
 		return
 	}
 

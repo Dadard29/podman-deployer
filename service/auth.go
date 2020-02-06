@@ -10,13 +10,17 @@ import (
 func authRoute(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		sendResponse(w, "invalid body", http.StatusBadRequest)
+		return
 	}
 
 	var payload map[string]string
 	err = json.Unmarshal(data, &payload)
 	if err != nil {
 		log.Println(err)
+		sendResponse(w, "invalid json", http.StatusBadRequest)
+		return
 	}
 
 	askedSecret := payload["Secret"]
@@ -25,12 +29,10 @@ func authRoute(w http.ResponseWriter, r *http.Request) {
 	storedToken := globalService.config.getToken()
 
 	if askedToken != storedToken {
-		w.WriteHeader(http.StatusUnauthorized)
+		sendResponse(w, "invalid secret", http.StatusUnauthorized)
 		return
 	}
 
-	if _, err := w.Write([]byte(storedToken)); err != nil {
-		log.Println(err)
-	}
+	sendResponse(w, storedToken, http.StatusOK)
 
 }
