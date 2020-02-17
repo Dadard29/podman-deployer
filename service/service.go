@@ -17,7 +17,7 @@ type Service struct {
 
 func sendResponse(w http.ResponseWriter, message string, status int) {
 	w.WriteHeader(status)
-	if _, err := w.Write([]byte(message + "\n")); err != nil {
+	if _, err := w.Write([]byte(message + "\n\n")); err != nil {
 		log.Println(err)
 	}
 }
