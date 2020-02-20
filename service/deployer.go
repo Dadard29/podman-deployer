@@ -13,6 +13,7 @@ import (
 type deployParameter struct {
 	ImageName string
 	ContainerName string
+	PodName string
 }
 
 func deployRoute(w http.ResponseWriter, r *http.Request) {
@@ -107,11 +108,20 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 	}
 
 	var newContainer models.Container
-	if newContainer, err = i.RunContainer(params.ContainerName, containerImage); err != nil {
-		log.Println(err)
-		sendResponse(w, "error starting container", http.StatusInternalServerError)
-		return
+	if params.PodName == "" {
+		if newContainer, err = i.RunContainer(params.ContainerName, containerImage); err != nil {
+			log.Println(err)
+			sendResponse(w, "error starting container", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		if newContainer, err = i.RunContainerInPod(params.ContainerName, containerImage, params.PodName); err != nil {
+			log.Println(err)
+			sendResponse(w, "error starting container", http.StatusInternalServerError)
+			return
+		}
 	}
+
 
 	log.Println(fmt.Sprintf("container %s (%s) started", newContainer.Names, newContainer.Image))
 	sendResponse(w, "container started", http.StatusOK)

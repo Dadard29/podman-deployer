@@ -16,6 +16,7 @@ type PodmanExecInterface interface {
 	ListAllContainers() []Container
 	GetContainer(id string) (Container, error)
 	RunContainer(name string, image Image) (Container, error)
+	RunContainerInPod(name string, image Image, podName string) (Container, error)
 	StopContainer(container Container) (Container, error)
 	DeleteContainer(container Container) (Container, error)
 	ListImages() []Image
@@ -97,6 +98,22 @@ func (p PodmanExec) GetContainer(id string) (Container, error) {
 func (p PodmanExec) RunContainer(name string, image Image) (Container, error) {
 	var container Container
 	stdout, err := p.execCommand([]string{"run", "-d", "--name", name, image.Names[0]}, false)
+	if err != nil {
+		return container, err
+	}
+
+	containerId := strings.Trim(string(stdout), "\n")
+	c, err := p.GetContainer(containerId)
+	if err != nil {
+		return c, errors.New("the run command did happen, but the created container cannot be found, what the hell is going on")
+	}
+
+	return c, nil
+}
+
+func (p PodmanExec) RunContainerInPod(name string, image Image, podName string) (Container, error) {
+	var container Container
+	stdout, err := p.execCommand([]string{"run", "-d", "--pod", podName, "--name", name, image.Names[0]}, false)
 	if err != nil {
 		return container, err
 	}
