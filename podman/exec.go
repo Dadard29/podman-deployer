@@ -32,6 +32,7 @@ func (PodmanExec) execCommand(args []string, json bool) ([]byte, error) {
 	if json {
 		args = append(args, "--format", "json")
 	}
+	log.Println(fmt.Sprintf("executing podman with args %v", args))
 	cmd := exec.Command("podman", args...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
