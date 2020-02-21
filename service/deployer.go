@@ -109,12 +109,14 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 
 	var newContainer models.Container
 	if params.PodName == "" {
+		log.Println("starting container outside of pod...")
 		if newContainer, err = i.RunContainer(params.ContainerName, containerImage); err != nil {
 			log.Println(err)
 			sendResponse(w, "error starting container", http.StatusInternalServerError)
 			return
 		}
 	} else {
+		log.Println(fmt.Sprintf("starting container inside %v...", params.PodName))
 		if newContainer, err = i.RunContainerInPod(params.ContainerName, containerImage, params.PodName); err != nil {
 			log.Println(err)
 			sendResponse(w, "error starting container", http.StatusInternalServerError)
