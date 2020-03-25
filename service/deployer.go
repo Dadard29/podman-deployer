@@ -14,6 +14,7 @@ type deployParameter struct {
 	ImageName string
 	ContainerName string
 	PodName string
+	Volume string
 }
 
 func deployRoute(w http.ResponseWriter, r *http.Request) {
@@ -108,24 +109,17 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 	}
 
 	var newContainer models.Container
-	if params.PodName == "" {
-		log.Println("starting container outside of pod...")
-		if newContainer, err = i.RunContainer(params.ContainerName, containerImage); err != nil {
-			log.Println(err)
-			sendResponse(w, "error starting container", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		log.Println(fmt.Sprintf("starting container inside %v...", params.PodName))
-		if newContainer, err = i.RunContainerInPod(params.ContainerName, containerImage, params.PodName); err != nil {
-			log.Println(err)
-			sendResponse(w, "error starting container", http.StatusInternalServerError)
-			return
-		}
+	log.Println(fmt.Sprintf("starting container with name %s", params.ContainerName))
+	if newContainer, err = i.RunContainer(
+		params.ContainerName, containerImage, params.Volume, params.PodName); err != nil {
+		log.Println(err)
+		sendResponse(w, "error starting container", http.StatusInternalServerError)
+		return
 	}
 
 
-	log.Println(fmt.Sprintf("container %s (%s) started", newContainer.Names, newContainer.Image))
-	sendResponse(w, "container started", http.StatusOK)
+	msg := fmt.Sprintf("container %s (%s) started", newContainer.Names, newContainer.Image)
+	log.Println(msg)
+	sendResponse(w, msg, http.StatusOK)
 
 }

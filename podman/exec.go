@@ -15,8 +15,7 @@ type PodmanExecInterface interface {
 	ListRunningContainers() []Container
 	ListAllContainers() []Container
 	GetContainer(id string) (Container, error)
-	RunContainer(name string, image Image) (Container, error)
-	RunContainerInPod(name string, image Image, podName string) (Container, error)
+	RunContainer(name string, image Image, volume string, podName string) (Container, error)
 	StopContainer(container Container) (Container, error)
 	DeleteContainer(container Container) (Container, error)
 	ListImages() []Image
@@ -96,25 +95,22 @@ func (p PodmanExec) GetContainer(id string) (Container, error) {
 	return Container{}, errors.New(fmt.Sprintf("container with id %s not found", id))
 }
 
-func (p PodmanExec) RunContainer(name string, image Image) (Container, error) {
+func (p PodmanExec) RunContainer(name string, image Image, volume string, podName string) (Container, error) {
 	var container Container
-	stdout, err := p.execCommand([]string{"run", "-d", "--name", name, image.Names[0]}, false)
-	if err != nil {
-		return container, err
+	cmdList := []string{"run", "-d", "--name", name}
+	if volume != "" {
+		cmdList = append(cmdList, "-v")
+		cmdList = append(cmdList, volume)
 	}
 
-	containerId := strings.Trim(string(stdout), "\n")
-	c, err := p.GetContainer(containerId)
-	if err != nil {
-		return c, errors.New("the run command did happen, but the created container cannot be found, what the hell is going on")
+	if podName != "" {
+		cmdList = append(cmdList, "--pod")
+		cmdList = append(cmdList, podName)
 	}
 
-	return c, nil
-}
+	cmdList = append(cmdList, image.Names[0])
 
-func (p PodmanExec) RunContainerInPod(name string, image Image, podName string) (Container, error) {
-	var container Container
-	stdout, err := p.execCommand([]string{"run", "-d", "--pod", podName, "--name", name, image.Names[0]}, false)
+	stdout, err := p.execCommand(cmdList, false)
 	if err != nil {
 		return container, err
 	}
