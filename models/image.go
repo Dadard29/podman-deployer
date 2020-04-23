@@ -7,7 +7,7 @@ type Image struct {
 	Names    []string      `json:"names"`
 	Digest   string        `json:"digest"`
 	Digests  []string      `json:"digests"`
-	Created  time.Time     `json:"created"`
+	CreatedAt  time.Time     `json:"createdAt"`
 	Size     int           `json:"size"`
 	Readonly bool          `json:"readonly"`
 	History  []interface{} `json:"history"`
