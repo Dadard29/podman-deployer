@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type Container struct {
 	ID        string      `json:"ID"`
 	Image     string      `json:"Image"`
@@ -16,9 +14,9 @@ type Container struct {
 	Size      interface{} `json:"Size"`
 	Pod       string      `json:"Pod"`
 	PodName   string      `json:"PodName"`
-	CreatedAt time.Time   `json:"CreatedAt"`
-	ExitedAt  time.Time   `json:"ExitedAt"`
-	StartedAt time.Time   `json:"StartedAt"`
+	CreatedAt string   `json:"CreatedAt"`
+	ExitedAt  string   `json:"ExitedAt"`
+	StartedAt string   `json:"StartedAt"`
 	Labels    struct {
 	} `json:"Labels"`
 	PID    string `json:"PID"`
