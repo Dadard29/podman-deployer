@@ -52,7 +52,7 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 	// stop running  container with name
 	containers := i.ListRunningContainers()
 	for _, c := range containers {
-		if c.Names == params.ContainerName {
+		if c.Names[0] == params.ContainerName {
 			// check the image is correct
 			if c.Image != params.ImageName {
 				sendResponse(
@@ -74,9 +74,9 @@ func deploy(params deployParameter, w http.ResponseWriter) {
 	// delete stopped container with name
 	allContainers := i.ListAllContainers()
 	for _, c := range allContainers {
-		if c.Names == params.ContainerName {
+		if c.Names[0] == params.ContainerName {
 			// check the container is stopped
-			if c.State != 6 {
+			if c.State != "exited" {
 				sendResponse(w, "container has not been correctly stopped", http.StatusInternalServerError)
 				return
 			}
