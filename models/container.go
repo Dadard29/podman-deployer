@@ -1,22 +1,24 @@
 package models
 
 type Container struct {
-	ID        string      `json:"ID"`
+	ID        string      `json:"Id"`
 	Image     string      `json:"Image"`
-	Command   string      `json:"Command"`
-	Created   string      `json:"Created"`
+	ImageID string `json:"ImageID"`
+	Command   []string      `json:"Command"`
+	Created   int      `json:"Created"`
 	Ports     string      `json:"Ports"`
-	Names     string      `json:"Names"`
+	Names     []string      `json:"Names"`
 	IsInfra   bool        `json:"IsInfra"`
 	Status    string      `json:"Status"`
-	State     int         `json:"State"`
+	State     string         `json:"State"`
 	Pid       int         `json:"Pid"`
 	Size      interface{} `json:"Size"`
 	Pod       string      `json:"Pod"`
 	PodName   string      `json:"PodName"`
 	CreatedAt string   `json:"CreatedAt"`
-	ExitedAt  string   `json:"ExitedAt"`
-	StartedAt string   `json:"StartedAt"`
+	Exited 	bool `json:"Exited"`
+	ExitedAt  int   `json:"ExitedAt"`
+	StartedAt int   `json:"StartedAt"`
 	Labels    struct {
 	} `json:"Labels"`
 	PID    string `json:"PID"`
@@ -27,5 +29,5 @@ type Container struct {
 	PIDNS  string `json:"PIDNS"`
 	User   string `json:"User"`
 	UTS    string `json:"UTS"`
-	Mounts string `json:"Mounts"`
+	Mounts []string `json:"Mounts"`
 }

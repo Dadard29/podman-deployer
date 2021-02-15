@@ -1,21 +1,22 @@
 package podman
 
 import (
+	"fmt"
 	"testing"
 )
 
 var podmanExec = PodmanExec{}
 
 func TestPodmanExec_ListRunningContainers(t *testing.T) {
-	podmanExec.ListRunningContainers()
+	fmt.Println(podmanExec.ListRunningContainers())
 }
 
 func TestPodmanExec_ListImages(t *testing.T) {
-	podmanExec.ListImages()
+	fmt.Println(podmanExec.ListImages())
 }
 
 func TestPodmanExec_ListAllContainers(t *testing.T) {
-	podmanExec.ListAllContainers()
+	fmt.Println(podmanExec.ListAllContainers())
 }
 
 func TestPodmanExec_PullImage(t *testing.T) {
