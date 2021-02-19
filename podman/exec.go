@@ -7,6 +7,7 @@ import (
 	"fmt"
 	. "github.com/Dadard29/podman-deployer/models"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -176,7 +177,14 @@ func (p PodmanExec) GetImage(imageName string) (Image, error) {
 
 func (p PodmanExec) PullImage(imageName string) (Image, error) {
 	var i Image
-	_, err := p.execCommand([]string{"pull", imageName}, false)
+
+	authfile := os.Getenv("AUTH_FILE")
+	_, err := p.execCommand([]string{"login", "--authfile", authfile, imageName}, false)
+	if err != nil {
+		return i, err
+	}
+
+	_, err = p.execCommand([]string{"pull", imageName}, false)
 	if err != nil {
 		return i, err
 	}
