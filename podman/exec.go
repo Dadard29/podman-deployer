@@ -176,7 +176,8 @@ func (p PodmanExec) GetImage(imageName string) (Image, error) {
 
 func (p PodmanExec) PullImage(imageName string) (Image, error) {
 	var i Image
-	_, err := p.execCommand([]string{"pull", imageName}, false)
+	output, err := p.execCommand([]string{"pull", imageName}, false)
+	log.Println(fmt.Sprintf("pull output: %s", output))
 	if err != nil {
 		return i, err
 	}
