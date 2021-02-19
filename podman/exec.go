@@ -179,7 +179,8 @@ func (p PodmanExec) PullImage(imageName string) (Image, error) {
 	var i Image
 
 	authfile := os.Getenv("AUTH_FILE")
-	_, err := p.execCommand([]string{"login", "--authfile", authfile, imageName}, false)
+	output, err := p.execCommand([]string{"login", "--authfile", authfile, imageName}, false)
+	log.Println(fmt.Sprintf("login output: %s", output))
 	if err != nil {
 		return i, err
 	}
